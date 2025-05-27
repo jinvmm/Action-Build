@@ -6,7 +6,7 @@ on:
         type: choice
         description: "分支"
         required: true
-        default: sm8550
+        default: sm8750
         options:
           - sm7550
           - sm7675
@@ -19,7 +19,7 @@ on:
         type: choice
         description: "配置文件"
         required: true
-        default: oneplus_ace2pro_v
+        default: oneplus_13
         options:
           - oneplus_nord_ce4_v
           - oneplus_ace_3v_v
@@ -47,7 +47,7 @@ on:
         type: choice
         description: "处理器代号"
         required: true
-        default: kalama
+        default: sun
         options:
           - crow
           - waipio
@@ -58,7 +58,7 @@ on:
         type: choice
         description: "内核安卓版本"
         required: true
-        default: android13
+        default: android15
         options:
           - android12
           - android13
@@ -68,7 +68,7 @@ on:
        type: choice
        description: "内核版本"
        required: true
-       default: "5.15"
+       default: "6.6"
        options:
          - "5.10"
          - "5.15"
@@ -78,7 +78,7 @@ on:
         type: choice
         description: "编译方式"
         required: true
-        default: gki
+        default: perf
         options:
           - gki
           - perf
@@ -86,7 +86,7 @@ on:
         type: string
         description: "自定义内核后缀 (留空则使用随机字符串)"
         required: false
-        default: ""
+        default: "-android15-8-g013ec21bba94-abogki383916444"
       SUSFS_CI:
         type: boolean
         description: "下载SUSFS模块是否使用CI构建？"
@@ -178,14 +178,18 @@ jobs:
         if: ${{ github.event.inputs.SUFFIX != '' }}
         run: |
           cd kernel_workspace
-          for path in \
-            kernel_platform/common/scripts/setlocalversion \
-            kernel_platform/msm-kernel/scripts/setlocalversion \
-            kernel_platform/external/dtc/scripts/setlocalversion; do
-              sed -i '/^res=/a res=$(echo "$res" | sed -E '\''s/-[0-9]+-o-g[0-9a-f]{7,}//'\'')' "$path"
-              sed -i "\$s|echo \"\\\$res\"|echo \"\$res-${{ github.event.inputs.SUFFIX }}\"|" "$path"
-          done
-          cat "$path"
+          if [ "${{ github.event.inputs.KERNEL_VERSION }}" = "6.6" ]; then
+            sed -i 's/echo \"\$res\"/res\=\$\(echo \$res \| cut -d- -f1\)\${{ github.event.inputs.SUFFIX }}\; echo \"\$res\"/g' kernel_platform/common/scripts/setlocalversion
+            sed -i 's/\${KERNELVERSION}\${file_localversion}\${config_localversion}/\${KERNELVERSION}\$\(collect_files localversion\*\)\${config_localversion}/g' kernel_platform/common/scripts/setlocalversion
+          else
+            for path in \
+              kernel_platform/common/scripts/setlocalversion \
+              kernel_platform/msm-kernel/scripts/setlocalversion \
+              kernel_platform/external/dtc/scripts/setlocalversion; do
+                sed -i '/^res=/a res=$(echo "$res" | sed -E '\''s/-[0-9]+-o-g[0-9a-f]{7,}//'\'')' "$path"
+                sed -i "\$s|echo \"\\\$res\"|echo \"\$res-${{ github.event.inputs.SUFFIX }}\"|" "$path"
+            done
+          fi
           git add -A
           git commit -m "Clean git describe suffix and append custom suffix: ${{ github.event.inputs.SUFFIX }}"
 
