@@ -201,12 +201,17 @@ jobs:
         if: ${{ github.event.inputs.SUFFIX != '' }}
         run: |
           cd kernel_workspace
-          SUFFIX="${{ github.event.inputs.SUFFIX }}"
-          ANDROID_VERSION="${{ github.event.inputs.ANDROID_VERSION }}"
-          FAST_BUILD="${{ github.event.inputs.FAST_BUILD }}"
-
+          for path in \
+            kernel_platform/common/scripts/setlocalversion \
+            kernel_platform/msm-kernel/scripts/setlocalversion \
+            kernel_platform/external/dtc/scripts/setlocalversion; do
+              # 清理默认后缀
+              sed -i '/^res=/a res=$(echo "$res" | sed -E '\''s/-[0-9]+-o-g[0-9a-f]{7,}//'\'')' "$path"
+              # 替换 echo "$res" 为自定义后缀
+              sed -i "\$s|echo \"\\\$res\"|echo \"\$res-${{ github.event.inputs.SUFFIX }}\"|" "$path"
+          done
+          
           if [ "${{ github.event.inputs.KERNEL_VERSION }}" = "6.6" ] && [ "${{ github.event.inputs.FEIL }}" == "oneplus_13" ]; then
-            sed -i 's/echo \"\$res\"/res\=\$\(echo \$res \| cut -d- -f1\)\${{ github.event.inputs.SUFFIX }}\; echo \"\$res\"/g' kernel_platform/common/scripts/setlocalversion
             sed -i 's/\${KERNELVERSION}\${file_localversion}\${config_localversion}/\${KERNELVERSION}\$\(collect_files localversion\*\)\${config_localversion}/g' kernel_platform/common/scripts/setlocalversion
           fi
 
