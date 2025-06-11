@@ -214,7 +214,7 @@ jobs:
           if [ "${{ github.event.inputs.KERNEL_VERSION }}" = "6.6" ] && [ "${{ github.event.inputs.FEIL }}" == "oneplus_13" ]; then
             sed -i 's/\${KERNELVERSION}\${file_localversion}\${config_localversion}/\${KERNELVERSION}\$\(collect_files localversion\*\)\${config_localversion}/g' kernel_platform/common/scripts/setlocalversion
           fi
-
+          cat kernel_platform/common/scripts/setlocalversion
           git add -A
           git commit -m "Updated kernel version suffix"
 
