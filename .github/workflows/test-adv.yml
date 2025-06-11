@@ -218,7 +218,7 @@ jobs:
                 sed -i "\$s|echo \"\\\$res\"|echo \"\$res-${{ github.event.inputs.SUFFIX }}\"|" "$path"
             done
           fi
-          
+          cat kernel_platform/common/scripts/setlocalversion
           git add -A
           git commit -m "Clean git describe suffix and append custom suffix: ${{ github.event.inputs.SUFFIX }}"
 
