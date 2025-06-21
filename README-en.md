@@ -22,53 +22,53 @@
 > <details>
 > <summary><strong>Click to view the Android version codes (subject to future updates)</strong></summary>
 >
->`_z Android19 (Zebra Cake)`
+>>`_z Android19 (Zebra Cake)`
 >
->`_y Android18 (Yogurt Parfait)`
+>>`_y Android18 (Yogurt Parfait)`
 >
->`_x Android17 (Xmas Pudding)`
+>>`_x Android17 (Xmas Pudding)`
 >
->`_w Android16 (Wedding Cake)`<strong>
+>>`_w Android16 (Wedding Cake)`<strong>
 >
->`_v Android15 (Vanilla Ice Cream)`
+>>`_v Android15 (Vanilla Ice Cream)`
 >
->`_u Android14 (Upside Down Cake)`
+>>`_u Android14 (Upside Down Cake)`
 >
->`_t Android13 (Tiramisu)`
+>>`_t Android13 (Tiramisu)`
 >
->`_s Android12 (Snow Cone)`</strong>
+>>`_s Android12 (Snow Cone)`</strong>
 >
->`_r Android11 (Red Velvet Cake)`
+>>`_r Android11 (Red Velvet Cake)`
 >
->`_q Android10 (Quince Tart)`
+>>`_q Android10 (Quince Tart)`
 >
->`_p Android9 (Pie)`
+>>`_p Android9 (Pie)`
 >
->`_o Android8 (Oreo)`
+>>`_o Android8 (Oreo)`
 >
->`_n Android7 (Nougat)`
+>>`_n Android7 (Nougat)`
 >
->`_m Android6 (Marshmallow)`
+>>`_m Android6 (Marshmallow)`
 >
->`_l Android5 (Lollipop)`
+>>`_l Android5 (Lollipop)`
 >
->`_k Android4.4 (KitKat)`
+>>`_k Android4.4 (KitKat)`
 >
->`_j Android4.3–4.1 (Jelly Bean)`
+>>`_j Android4.3–4.1 (Jelly Bean)`
 >
->`_i Android4.0 (Ice Cream Sandwich)`
+>>`_i Android4.0 (Ice Cream Sandwich)`
 >
->`_h Android3.x (Honeycomb)`
+>>`_h Android3.x (Honeycomb)`
 >
->`_g Android2.3 (Gingerbread)`
+>>`_g Android2.3 (Gingerbread)`
 >
->`_f Android2.2 (FroYo)`
+>>`_f Android2.2 (FroYo)`
 >
->`_e Android2.1 (Eclair)`
+>>`_e Android2.1 (Eclair)`
 >
->`_d Android1.6 (Donut)`
+>>`_d Android1.6 (Donut)`
 >
->`_c Android1.5 (Cupcake)`
+>>`_c Android1.5 (Cupcake)`
 >
 > </details>
 
@@ -80,7 +80,7 @@
 >
 >|Device Type                | Average Duration Range            | Maximum Duration     |
 >|-------------------------------------|--------------------------|------------------|
->| `All other models`                  | `19min ~ 33min`         | `35min`         |
+>| `All other models`                  | `19min ~ 29min`         | `35min`         |
 >| `Special models e.g.: OnePlus 11-A14; OnePlus 11-A13`    | `55min ~ 1h17min`     | `1h23min` |
 > </details>
 > 
@@ -108,12 +108,9 @@
 > `dtbo.img`, `system_dlkm.erofs.img`, `vendor_dlkm.img`, and `vendor_boot.img`,
 > **otherwise the device may fail to boot!**
 >
-> If you have enabled the **`ZRAM`** algorithm, make sure to install the `ZRAM` module
-> **before rebooting** after flashing with `Anykernel3`. You may need to adjust some parameters manually.
-> Note: The **5.10 kernel does NOT support `ZRAM`**, as the `zram.ko` module path could not be found.
+> If you have enabled the `ZRAM` algorithm, make sure to install the `ZRAM` module
+> **before rebooting** after flashing with `Anykernel3`. You may need to adjust some parameters manually.The 5.10 kernel is not supported `ZRAM` , as the `zram.ko` module path could not be found.
 >
-> **We've noticed that some`sm8650`devices fail to boot after updating to`830/831`due to kernel version changes.Please wait for upstream sources to be updated.**
-
  
 ------
  
@@ -140,11 +137,9 @@ Examples:
 AnyKernel3_SukiSUUltra_12896_oneplus_ace2pro_Android15.0.0_KPM_VFS.zip  
 AnyKernel3_SukiSUUltra_12896_oneplus_13_Android15.0.2_KPM_VFS.zip  
 AnyKernel3_SukiSUUltra_12896_oneplus_11_Android14.1.0_KPM_VFS.zip
-```  
--- New `dir4` and `dir5` paths added to support `sm8750` and some devices with new paths when ZRAM is enabled (such as `ace2p`, `13T`).   [@ShirkNeko](https://github.com/ShirkNeko)  
+```   
 -- Added support for the `LZ4K` compression algorithm in the `zram` module.   [@ShirkNeko](https://github.com/ShirkNeko)  
 -- Synchronized changes with the upstream download channel for the `susfs` module to fix download issues.  
 -- Optimized the build scheme for `sm8750` and `sm7675`.  
--- New `dir3` path added to support `sm8475` (such as `ace2`).  
 -- Support automatic download of latest `CI` version of `susfs` module and install via `ksud`; also automatically extracts manager `CI-APK` but does not install it.  
 -- Supports `KPM` (copy without modifications;optional) and `VFS HOOK` (optional).  
