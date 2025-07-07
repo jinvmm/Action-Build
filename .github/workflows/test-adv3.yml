@@ -83,7 +83,7 @@ on:
 
 jobs:
   get-config:
-    uses: ./.github/workflows/feil-map.yml
+    uses: ./.github/workflows/file-map.yml
     with:
       FEIL: ${{ inputs.FEIL }}
     secrets: inherit
