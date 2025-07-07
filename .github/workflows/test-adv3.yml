@@ -451,6 +451,7 @@ jobs:
             echo "CONFIG_CRYPTO_LZ4K_OPLUS=y" >> "$CONFIG_FILE"
             echo "CONFIG_ZRAM_WRITEBACK=y" >> "$CONFIG_FILE"
           fi
+          echo $CONFIG_FILE
           # 移除构建校验
           sed -i 's/check_defconfig//' ./common/build.config.gki
 
