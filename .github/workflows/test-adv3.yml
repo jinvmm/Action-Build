@@ -85,7 +85,7 @@ jobs:
   get-config:
     uses: ./.github/workflows/file-map.yml
     with:
-      FEIL: ${{ inputs.FEIL }}
+      FILE: ${{ inputs.FEIL }}
     secrets: inherit
 
   build:
