@@ -119,25 +119,39 @@
 > If you have enabled the `ZRAM` algorithm, make sure to install the `ZRAM` module
 > **before rebooting** after flashing with `Anykernel3`. You may need to adjust some parameters manually.The 5.10 kernel is not supported `ZRAM` , as the `zram.ko` module path could not be found.However, the generated ``Anykernel3`` is still usable.
 >
-> ``OnePlus ace5`` does not support enabling FengChi. Older models cannot use it even if the kernel includes it — do not force it.
+> ``OnePlus Ace5`` does not support enabling FengChi. Older models cannot use it even if the kernel includes it — do not force it.
 >
  
 ------
  
 # Features in Development
 - [ ] ccache supports AB update mode  
-- [ ] Switching between different branches  
 - Toothpaste should be squeezed bit by bit, GPUs should be cut slice by slice, PPTs should be shown slide by slide, and code should be written line by line — more features and optimizations... stay tuned!
  
 # Changelog
 > Minor updates will be ignored. For more details, please refer to the commit.
  
+-- Support setting branches and custom version identifiers.  
+```
+Set Branch:Change the original susfs-main to another susfs-* branch. Please modify it according to the channel name in the SukiSU Ultra repository. Do not change this unless you are a developer.
+Custom version identifier:
+Replace the original commit hash with your custom content. You can change this freely, but keep it reasonably short.
+v3.1.7-f5541e21@susfs-*
+↓
+v3.1.7-custom content@susfs-*
+Set branches and custom version identifiers are separated by / (U+002F), which cannot be deleted
+```  
+-- Remove file-map and build method selection; let the main workflow decide automatically [@Bouteillepleine](https://github.com/Bouteillepleine).  
 -- First to support custom kernel build time `UTS_VERSION` for all device models and all build methods.  
--- Use `ccache` to speed up the workflow. It is only effective when `fast build` is enabled. The cache will need to be regenerated on first use, major updates, or when the key is changed, which may reduce the speed.  
+-- Use `ccache` to speed up the workflow. It is only effective when `fast build` is enabled. The cache will need to be regenerated on first use, major updates, or when the key is changed, which may reduce the speed. 
+```
+You can use a new ccache by changing the key, but it's more recommended to directly delete the corresponding key at:
+https://github.com/your-username/your-repository-name/actions/caches
+You should do this when a kernel version update or a change in the upstream GitHub toolchain causes a noticeable slowdown.
+```  
 -- First to support for the sm8750's new setlocalversion format using echo, fixing the issue where custom and randomly-generated pseudo-official suffixes were not applied. Now, this feature is fully supported across all device models and build methods.  
 -- Add `TRUSTY_EXISTS` to automatically detect whether the `6.6` kernel has defects in the kernel source code and determine whether `sed` is needed.  
 -- Support enabling fongchi driver for selected devices (optional), driver from [@HanKuCha](https://github.com/HanKuCha).  
--- Remove all device-related parameters from `input` except the device config file `FILE`, and propagate to `file-map` to support more options.  
 -- When `ZRAM` is enabled, automatically download and modify the ZRAM additional module, module from [@FURLC](https://github.com/FURLC).  
 -- Fix issues where `ZRAM` is unusable or unable to launch non-system apps.  
 -- Fix the problem that the official script cannot run when the kernel version is between `5.15.0-5.15.123`, and the result of the quick compilation has problems. [@zzh20188](https://github.com/zzh20188)  
@@ -145,7 +159,7 @@
 -- Allow custom kernel suffix.  <- **`beta`**
 ```
 1. When the custom kernel suffix is empty, a random string is used instead of the default “x.xx.xxx-androidxx-8-o-g3b1e97b8b29f”
-2. When custom suffix is enabled, the kernel version is modified to “x.xx.xxx-androidxx-[custom content]”, and the original “androidxx-8-o-g3b1e97b8b29f” is no longer retained.
+2. When custom suffix is enabled, the kernel version is modified to “x.xx.xxx-androidxx-custom content”, and the original “androidxx-8-o-g3b1e97b8b29f” is no longer retained.
 3. When using clang make (Fast Build), add the missing kernel android version number to the new source kernel information x.xx.xxx-o-g3b1e97b8b29f, and then perform operations in 1 or 2.
 ```  
 -- Support fast-build `(5.10[Debut], 5.15[Debut], 6.1, 6.6)`  
