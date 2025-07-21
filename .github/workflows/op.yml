@@ -45,14 +45,14 @@ on:
           - NoN
       KSU_META:
         type: string
-        description: "分支名/自定义版本标识"
+        description: "分支名(不可留空)/自定义版本标识(留空不修改)"
         required: false
         default: "susfs-main/Numbersf"
       BUILD_TIME:
         type: string
         description: "自定义构建时间 (输入F使用当前时间)"
         required: false
-        default: "Fri May 30 04:01:05 UTC 2025"
+        default: ""
       SUFFIX:
         type: string
         description: "自定义内核后缀 (不输入使用随机字符串)"
@@ -86,7 +86,7 @@ on:
 
 jobs:
   build:
-    name: ${{ github.event.inputs.FAST_BUILD == 'true' && ' [FAST]' || '' }}${{ github.event.inputs.SCHED == 'true' && ' [SCHED]' || '' }}${{ github.event.inputs.ZRAM == 'true' && ' [ZRAM]' || '' }}For ${{ github.event.inputs.FILE }} ${{ github.event.inputs.SUFFIX }}
+    name: ${{ github.event.inputs.FAST_BUILD == 'true' && ' [FAST]' || '' }}${{ github.event.inputs.SCHED == 'true' && ' [SCHED]' || '' }}${{ github.event.inputs.ZRAM == 'true' && ' [ZRAM]' || '' }}${{ github.event.inputs.KPM == 'true' && ' [KPM]' || '' }}For ${{ github.event.inputs.FILE }} ${{ github.event.inputs.SUFFIX }}
     runs-on: ubuntu-latest
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
@@ -172,6 +172,26 @@ jobs:
             echo "BUILD_METHOD=gki" >> $GITHUB_ENV
           fi
 
+      - name: Debug Show Selected Inputs
+        run: |
+          echo "-----------------------"
+          echo "Selected CPU: ${{ env.CPU }}"
+          echo "Selected CPUD: ${{ env.CPUD }}"
+          echo "Selected ANDROID_VERSION: ${{ env.ANDROID_VERSION }}"
+          echo "Selected KERNEL_VERSION: ${{ env.KERNEL_VERSION }}"
+          echo "Selected BUILD_METHOD: ${{ env.BUILD_METHOD }}"
+          echo "Selected FILE: ${{ github.event.inputs.FILE }}"
+          echo "Custom KSU_META: ${{ github.event.inputs.KSU_META }}"
+          echo "Custom BUILD_TIME: ${{ github.event.inputs.BUILD_TIME }}"
+          echo "Custom SUFFIX: ${{ github.event.inputs.SUFFIX }}"
+          echo "Selected SUSFS_CI: ${{ github.event.inputs.SUSFS_CI }}"
+          echo "Selected VFS: ${{ github.event.inputs.VFS }}"
+          echo "Selected KPM: ${{ github.event.inputs.KPM }}"
+          echo "Selected FAST_BUILD: ${{ github.event.inputs.FAST_BUILD }}"
+          echo "Selected SCHED: ${{ github.event.inputs.SCHED }}"
+          echo "Selected ZRAM: ${{ github.event.inputs.ZRAM }}"
+          echo "-----------------------"
+
       - name: Check Disk Space
         run: df -h
 
@@ -223,24 +243,6 @@ jobs:
           key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/Build SukiSU Ultra OnePlus.yml') }}
           restore-keys: |
             ${{ runner.os }}-apt-
-
-      - name: Debug Show Selected Inputs
-        run: |
-          echo "Selected CPU: ${{ env.CPU }}"
-          echo "Selected CPUD: ${{ env.CPUD }}"
-          echo "Selected ANDROID_VERSION: ${{ env.ANDROID_VERSION }}"
-          echo "Selected KERNEL_VERSION: ${{ env.KERNEL_VERSION }}"
-          echo "Selected BUILD_METHOD: ${{ env.BUILD_METHOD }}"
-          echo "Selected FILE: ${{ github.event.inputs.FILE }}"
-          echo "Custom KSU_META: ${{ github.event.inputs.KSU_META }}"
-          echo "Custom BUILD_TIME: ${{ github.event.inputs.BUILD_TIME }}"
-          echo "Custom SUFFIX: ${{ github.event.inputs.SUFFIX }}"
-          echo "Selected SUSFS_CI: ${{ github.event.inputs.SUSFS_CI }}"
-          echo "Selected VFS: ${{ github.event.inputs.VFS }}"
-          echo "Selected KPM: ${{ github.event.inputs.KPM }}"
-          echo "Selected FAST_BUILD: ${{ github.event.inputs.FAST_BUILD }}"
-          echo "Selected SCHED: ${{ github.event.inputs.SCHED }}"
-          echo "Selected ZRAM: ${{ github.event.inputs.ZRAM }}"
 
       - name: Install Dependencies
         run: |
@@ -415,6 +417,8 @@ jobs:
           META="${{ github.event.inputs.KSU_META }}"
           BRANCH_NAME="${META%%/*}"
           CUSTOM_TAG="${META#*/}"
+          RANDOM_STR=$(openssl rand -hex 4 | tr -d '\n')
+          BUILD_DATE=$(date +"%Y%m%d")
           echo "分支名: $BRANCH_NAME"
           echo "自定义版本标识: $CUSTOM_TAG"
 
@@ -430,20 +434,39 @@ jobs:
 
           echo "KSU_API_VERSION=$KSU_API_VERSION" >> $GITHUB_ENV
 
-          VERSION_DEFINITIONS=$(cat << 'EOF'
-          define get_ksu_version_full
-          v$1-CUSTOM_TAG@BRANCH_NAME
-          endef
+          GIT_HASH=$(git rev-parse --short HEAD)
+          echo "GIT_HASH=$GIT_HASH"
 
-          KSU_VERSION_API := KSU_API_VERSION
-          KSU_VERSION_FULL := vKSU_API_VERSION-CUSTOM_TAG@BRANCH_NAME
+          if [[ -z "$CUSTOM_TAG" || "$CUSTOM_TAG" == "$BRANCH_NAME" ]]; then
+            VERSION_FULL="v$KSU_API_VERSION-$GIT_HASH@$BRANCH_NAME-$BUILD_DATE"
+          else
+            VERSION_FULL="v$KSU_API_VERSION-$RANDOM_STR@$BRANCH_NAME[$GIT_HASH]-$BUILD_DATE"
+          fi
+
+          sed -i '/define get_ksu_version_full/,/endef/d' kernel/Makefile
+          sed -i '/KSU_VERSION_API :=/d' kernel/Makefile
+          sed -i '/KSU_VERSION_FULL :=/d' kernel/Makefile
+
+          VERSION_DEFINITIONS=$(cat <<EOF
+            define get_ksu_version_full
+            $VERSION_FULL
+            endef
+
+            KSU_VERSION_API := $KSU_API_VERSION
+            KSU_VERSION_FULL := $VERSION_FULL
           EOF
           )
+
+          awk -v def="$VERSION_DEFINITIONS" '
+            /REPO_OWNER :=/ {print; print def; inserted=1; next}
+            1
+            END {if (!inserted) print def}
+          ' kernel/Makefile > kernel/Makefile.tmp && mv kernel/Makefile.tmp kernel/Makefile
 
           KSU_VERSION=$(expr $(git rev-list --count main 2>/dev/null || echo 13000) + 10700)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
 
-          echo "::group:: 最终 Makefile 中版本信息及部分调试结果预览"
+          echo "::group::最终 Makefile 中版本信息及部分调试结果预览"
           grep -A10 "REPO_OWNER" kernel/Makefile
           grep "KSU_VERSION_FULL" kernel/Makefile
           echo "::endgroup::"
