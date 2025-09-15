@@ -62,7 +62,7 @@ on:
         type: string
         description: "自定义构建时间 (输入F使用当前时间)"
         required: false
-        default: "Sun Jun 15 14:56:02 UTC 2025"
+        default: "Mon Aug 18 09:30:24 UTC 2025"
       SUFFIX:
         type: string
         description: "自定义内核后缀 (不输入使用随机字符串)"
@@ -304,14 +304,13 @@ jobs:
           cp "$GITHUB_WORKSPACE/.repo/manifests_fallback/${FILE}.xml" ".repo/manifests/${FILE}.xml"
           repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/${{env.CPU}} -m "${FILE}.xml" --repo-rev=v2.16 --depth=1 --no-clone-bundle --no-tags
           repo sync -c -j$(nproc) --no-clone-bundle --no-tags --force-sync
-          if [ -e kernel_platform/common/BUILD.bazel ]; then
-            sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' kernel_platform/common/BUILD.bazel
-          fi
-          if [ -e kernel_platform/msm-kernel/BUILD.bazel ]; then
-            sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' kernel_platform/msm-kernel/BUILD.bazel
-          fi
-          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+
+          for dir in kernel_platform/common kernel_platform/msm-kernel; do
+            if [ -e "$dir/BUILD.bazel" ]; then
+              sed -i '/^[[:space:]]*"protected_exports_list"[[:space:]]*:[[:space:]]*"android\/abi_gki_protected_exports_aarch64",$/d' "$dir/BUILD.bazel"
+            fi
+            rm -f "$dir/android/abi_gki_protected_exports_"* 2>/dev/null || echo "No protected exports in $dir"
+          done
 
       - name: Kernel Version Handling
         run: |
